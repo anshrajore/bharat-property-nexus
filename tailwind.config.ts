@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,7 +62,30 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+                gov: {
+                    blue: {
+                        DEFAULT: '#14306B',  // Deep navy blue
+                        light: '#1A4B8C',    // Medium navy blue
+                        dark: '#0E2255',     // Dark navy blue
+                        accent: '#0F52BA',   // Bright navy blue
+                    },
+                    orange: {
+                        DEFAULT: '#FF8200',  // Saffron orange
+                        light: '#FFA64D',    // Light orange
+                        dark: '#E67300',     // Dark orange
+                    },
+                    green: {
+                        DEFAULT: '#138808',  // India green
+                        light: '#1CAC0D',    // Light green
+                        dark: '#0E6606',     // Dark green
+                    },
+                    gray: {
+                        DEFAULT: '#F8F9FA',  // Light gray bg
+                        medium: '#E9ECEF',   // Medium gray
+                        dark: '#6C757D',     // Dark gray for text
+                    }
+                }
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -84,11 +108,16 @@ export default {
 					to: {
 						height: '0'
 					}
-				}
+				},
+                'pulse-opacity': {
+                    '0%, 100%': { opacity: '1' },
+                    '50%': { opacity: '0.5' },
+                }
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+                'pulse-opacity': 'pulse-opacity 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
 			}
 		}
 	},
