@@ -11,7 +11,7 @@ import PropertyMap from '@/components/maps/PropertyMap';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { FileText, MapPin } from 'lucide-react';
+import { FileText, MapPin, Route } from 'lucide-react';
 
 const Index = () => {
   const { toast } = useToast();
@@ -32,11 +32,14 @@ const Index = () => {
       setSearchTerm(formData.ownerName);
       
       const displayName = `${formData.ownerName} ${formData.propertyId ? `(${formData.propertyId})` : ''}`;
+      const locationInfo = formData.district ? 
+        `${formData.district}, ${formData.state}` : 
+        (formData.state ? formData.state : '');
 
-      // Show a loading toast
+      // Show a loading toast with additional info if location is provided
       toast({
         title: "Initiating search",
-        description: `Searching for property details of ${displayName}`,
+        description: `Searching for property details of ${displayName}${locationInfo ? ` in ${locationInfo}` : ''}`,
       });
       
       // Initialize with loading state for better UX
@@ -77,7 +80,7 @@ const Index = () => {
         }
       }, 100);
 
-      // Perform the actual search
+      // Perform the actual search with enhanced search data
       const results = await searchProperty(formData);
       
       // Update with final results
@@ -99,7 +102,7 @@ const Index = () => {
         toast({
           title: "Search complete",
           description: `Found property records in ${foundCount} database${foundCount > 1 ? 's' : ''}`,
-          variant: "default", // Changed from "success" to "default"
+          variant: "default",
         });
       } else {
         toast({

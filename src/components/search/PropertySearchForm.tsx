@@ -1,12 +1,18 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { User, IdCard, FileText, MapPin, Pin, Radio, Search } from 'lucide-react';
+import { User, IdCard, FileText, MapPin, Pin, Radio, Search, Clock, Calendar } from 'lucide-react';
 import PortalSelector from './PortalSelector';
 import PropertyTypeToggle from './PropertyTypeToggle';
+import LocationSelector from './LocationSelector';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format } from 'date-fns';
+import { Calendar as CalendarUI } from '@/components/ui/calendar';
 
 export interface SearchFormData {
   ownerName: string;
@@ -16,6 +22,13 @@ export interface SearchFormData {
   pinCode: string;
   propertyType: string;
   portal: string;
+  state: string;
+  district: string;
+  includeHistorical: boolean;
+  dateRange: {
+    from: Date | undefined;
+    to: Date | undefined;
+  };
 }
 
 interface PropertySearchFormProps {
@@ -38,7 +51,16 @@ const PropertySearchForm: React.FC<PropertySearchFormProps> = ({
     pinCode: '',
     propertyType: 'urban',
     portal: 'auto',
+    state: '',
+    district: '',
+    includeHistorical: false,
+    dateRange: {
+      from: undefined,
+      to: undefined
+    }
   });
+
+  const [isAdvancedSearch, setIsAdvancedSearch] = useState(false);
 
   // Effect to update propertyId when extractedPropertyId changes
   useEffect(() => {
@@ -58,6 +80,22 @@ const PropertySearchForm: React.FC<PropertySearchFormProps> = ({
 
   const handlePortalChange = (value: string) => {
     setFormData((prev) => ({ ...prev, portal: value }));
+  };
+
+  const handleStateChange = (value: string) => {
+    setFormData((prev) => ({ ...prev, state: value }));
+  };
+
+  const handleDistrictChange = (value: string) => {
+    setFormData((prev) => ({ ...prev, district: value }));
+  };
+
+  const handleCheckboxChange = (checked: boolean) => {
+    setFormData((prev) => ({ ...prev, includeHistorical: checked }));
+  };
+
+  const handleDateRangeChange = (range: { from: Date | undefined, to: Date | undefined }) => {
+    setFormData((prev) => ({ ...prev, dateRange: range }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -100,6 +138,10 @@ const PropertySearchForm: React.FC<PropertySearchFormProps> = ({
     }
     
     onSearch(formData);
+  };
+
+  const displayFormattedDate = (date: Date | undefined) => {
+    return date ? format(date, 'PP') : '';
   };
 
   return (
@@ -197,6 +239,90 @@ const PropertySearchForm: React.FC<PropertySearchFormProps> = ({
                 onChange={handlePortalChange} 
               />
             </div>
+          </div>
+
+          <div className="border-t border-gray-200 pt-4">
+            <Button
+              type="button"
+              variant="link"
+              className="text-gov-blue p-0 h-auto font-medium flex items-center"
+              onClick={() => setIsAdvancedSearch(!isAdvancedSearch)}
+            >
+              {isAdvancedSearch ? 'Hide' : 'Show'} Advanced Options
+            </Button>
+            
+            {isAdvancedSearch && (
+              <div className="mt-4 space-y-6 border-l-2 border-gov-blue pl-4">
+                <LocationSelector 
+                  selectedState={formData.state}
+                  onStateChange={handleStateChange}
+                  selectedDistrict={formData.district}
+                  onDistrictChange={handleDistrictChange}
+                />
+                
+                <div className="flex flex-col space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="includeHistorical"
+                      checked={formData.includeHistorical}
+                      onCheckedChange={handleCheckboxChange}
+                    />
+                    <label
+                      htmlFor="includeHistorical"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center"
+                    >
+                      <Clock className="h-4 w-4 mr-1" />
+                      Include historical records (may take longer)
+                    </label>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4" /> Registration Date Range
+                    </Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start text-left font-normal"
+                        >
+                          <Calendar className="mr-2 h-4 w-4" />
+                          {formData.dateRange.from ? (
+                            formData.dateRange.to ? (
+                              <>
+                                {displayFormattedDate(formData.dateRange.from)} - {displayFormattedDate(formData.dateRange.to)}
+                              </>
+                            ) : (
+                              displayFormattedDate(formData.dateRange.from)
+                            )
+                          ) : (
+                            <span>Pick a date range</span>
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <CalendarUI
+                          initialFocus
+                          mode="range"
+                          defaultMonth={formData.dateRange.from}
+                          selected={{
+                            from: formData.dateRange.from,
+                            to: formData.dateRange.to
+                          }}
+                          onSelect={(range) => {
+                            handleDateRangeChange({
+                              from: range?.from,
+                              to: range?.to
+                            });
+                          }}
+                          numberOfMonths={2}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="pt-4">
