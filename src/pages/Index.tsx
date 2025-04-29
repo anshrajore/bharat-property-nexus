@@ -77,7 +77,7 @@ const Index = () => {
         toast({
           title: "Search complete",
           description: `Found property records in ${foundCount} database${foundCount > 1 ? 's' : ''}`,
-          variant: "success",
+          variant: "default", // Changed from "success" to "default"
         });
       } else {
         toast({
