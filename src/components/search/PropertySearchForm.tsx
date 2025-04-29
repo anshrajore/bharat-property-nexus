@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { User, IdCard, FileText, MapPin, Pin, Radio, Search, Clock, Calendar } from 'lucide-react';
+import { User, IdCard, FileText, MapPin, Pin, Radio, Search, Clock, Calendar, Flag } from 'lucide-react';
 import PortalSelector from './PortalSelector';
 import PropertyTypeToggle from './PropertyTypeToggle';
 import LocationSelector from './LocationSelector';
@@ -13,6 +13,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { Calendar as CalendarUI } from '@/components/ui/calendar';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export interface SearchFormData {
   ownerName: string;
@@ -36,6 +43,34 @@ interface PropertySearchFormProps {
   isLoading?: boolean;
   extractedPropertyId?: string | null;
 }
+
+// Indian states array
+const INDIAN_STATES = [
+  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", 
+  "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", 
+  "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", 
+  "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", 
+  "Uttarakhand", "West Bengal", "Andaman and Nicobar Islands", "Chandigarh", 
+  "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Jammu and Kashmir", 
+  "Ladakh", "Lakshadweep", "Puducherry"
+];
+
+// Districts by state (subset of districts for popular states)
+const DISTRICTS_BY_STATE: Record<string, string[]> = {
+  "Delhi": ["Central Delhi", "East Delhi", "New Delhi", "North Delhi", "North East Delhi", "North West Delhi", "South Delhi", "South West Delhi", "West Delhi"],
+  "Maharashtra": ["Mumbai", "Pune", "Nagpur", "Thane", "Nashik", "Aurangabad", "Solapur", "Amravati", "Kolhapur", "Latur", "Dhule"],
+  "Karnataka": ["Bengaluru Urban", "Belgaum", "Mysuru", "Shivamogga", "Tumakuru", "Dakshina Kannada", "Davanagere", "Udupi", "Dharwad", "Hassan"],
+  "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai", "Salem", "Tiruchirappalli", "Tirunelveli", "Tiruppur", "Vellore", "Erode", "Thoothukkudi"],
+  "Uttar Pradesh": ["Lucknow", "Kanpur", "Ghaziabad", "Agra", "Varanasi", "Meerut", "Prayagraj", "Bareilly", "Aligarh", "Moradabad", "Saharanpur"],
+  "Gujarat": ["Ahmedabad", "Surat", "Vadodara", "Rajkot", "Bhavnagar", "Jamnagar", "Gandhinagar", "Junagadh", "Anand", "Bharuch"],
+  "West Bengal": ["Kolkata", "Howrah", "Asansol", "Durgapur", "Bardhaman", "Siliguri", "Malda", "Kharagpur", "Darjeeling", "Jalpaiguri"],
+  "Rajasthan": ["Jaipur", "Jodhpur", "Kota", "Bikaner", "Ajmer", "Udaipur", "Bhilwara", "Alwar", "Sikar", "Sri Ganganagar"],
+  "Andhra Pradesh": ["Visakhapatnam", "Vijayawada", "Guntur", "Nellore", "Kurnool", "Rajahmundry", "Tirupati", "Kakinada", "Kadapa", "Anantapur"],
+  "Telangana": ["Hyderabad", "Warangal", "Nizamabad", "Karimnagar", "Khammam", "Ramagundam", "Mahbubnagar", "Nalgonda", "Adilabad", "Suryapet"]
+};
+
+// Default districts for states not in our list
+const DEFAULT_DISTRICTS = ["District 1", "District 2", "District 3", "District 4", "District 5"];
 
 const PropertySearchForm: React.FC<PropertySearchFormProps> = ({
   onSearch,
@@ -61,6 +96,7 @@ const PropertySearchForm: React.FC<PropertySearchFormProps> = ({
   });
 
   const [isAdvancedSearch, setIsAdvancedSearch] = useState(false);
+  const [availableDistricts, setAvailableDistricts] = useState<string[]>([]);
 
   // Effect to update propertyId when extractedPropertyId changes
   useEffect(() => {
@@ -68,6 +104,18 @@ const PropertySearchForm: React.FC<PropertySearchFormProps> = ({
       setFormData(prev => ({ ...prev, propertyId: extractedPropertyId }));
     }
   }, [extractedPropertyId]);
+
+  // Effect to update districts when state changes
+  useEffect(() => {
+    // Update districts when state changes
+    if (formData.state) {
+      setAvailableDistricts(DISTRICTS_BY_STATE[formData.state] || DEFAULT_DISTRICTS);
+      // Reset district selection when state changes
+      setFormData(prev => ({ ...prev, district: '' }));
+    } else {
+      setAvailableDistricts([]);
+    }
+  }, [formData.state]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -218,6 +266,46 @@ const PropertySearchForm: React.FC<PropertySearchFormProps> = ({
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="state" className="flex items-center gap-2">
+                <Flag className="h-4 w-4" /> State/Union Territory
+              </Label>
+              <Select value={formData.state} onValueChange={handleStateChange}>
+                <SelectTrigger id="state" className="w-full govt-input-focus">
+                  <SelectValue placeholder="Select state" />
+                </SelectTrigger>
+                <SelectContent position="popper" className="max-h-[300px]">
+                  {INDIAN_STATES.map((state) => (
+                    <SelectItem key={state} value={state}>
+                      {state}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="district" className="flex items-center gap-2">
+                <MapPin className="h-4 w-4" /> District
+              </Label>
+              <Select 
+                value={formData.district} 
+                onValueChange={handleDistrictChange}
+                disabled={!formData.state}
+              >
+                <SelectTrigger id="district" className="w-full govt-input-focus">
+                  <SelectValue placeholder={formData.state ? "Select district" : "Select state first"} />
+                </SelectTrigger>
+                <SelectContent position="popper" className="max-h-[300px]">
+                  {availableDistricts.map((district) => (
+                    <SelectItem key={district} value={district}>
+                      {district}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="pinCode" className="flex items-center gap-2">
                 <Pin className="h-4 w-4" /> PIN Code*
               </Label>
@@ -259,13 +347,6 @@ const PropertySearchForm: React.FC<PropertySearchFormProps> = ({
             
             {isAdvancedSearch && (
               <div className="mt-4 space-y-6 border-l-2 border-gov-blue pl-4">
-                <LocationSelector 
-                  selectedState={formData.state}
-                  onStateChange={handleStateChange}
-                  selectedDistrict={formData.district}
-                  onDistrictChange={handleDistrictChange}
-                />
-                
                 <div className="flex flex-col space-y-4">
                   <div className="flex items-center space-x-2">
                     <Checkbox 
@@ -322,6 +403,7 @@ const PropertySearchForm: React.FC<PropertySearchFormProps> = ({
                             });
                           }}
                           numberOfMonths={2}
+                          className="p-3 pointer-events-auto"
                         />
                       </PopoverContent>
                     </Popover>
