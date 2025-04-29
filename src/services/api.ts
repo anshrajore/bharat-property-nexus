@@ -1,57 +1,174 @@
 
 import axios from 'axios';
+import { SearchFormData } from '@/components/search/PropertySearchForm';
 
 // Base URLs for different government portals
-const API_ENDPOINTS = {
-  doris: 'https://api.doris.delhi.gov.in/v1',  // Delhi Online Registration Information System
-  dlr: 'https://api.landrecords.gov.in/v1',     // Department of Land Records
-  cersai: 'https://api.cersai.org.in/api',      // Central Registry of Securitisation Asset Reconstruction
-  mca21: 'https://api.mca.gov.in/api/v1'        // Ministry of Corporate Affairs
-};
+const API_BASE_URL = 'http://localhost:5000'; // Local Express server
 
-// Timeout settings (in milliseconds)
+// API timeout settings (in milliseconds)
 const API_TIMEOUT = 15000;
 
-// Create axios instances for each API
-const createApiInstance = (baseURL: string) => {
-  return axios.create({
-    baseURL,
-    timeout: API_TIMEOUT,
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
-    }
-  });
+// Create axios instance for API calls
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: API_TIMEOUT,
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  }
+});
+
+// Format the search data for API request
+const formatSearchRequestData = (formData: SearchFormData) => {
+  return {
+    ownerName: formData.ownerName,
+    propertyId: formData.propertyId,
+    registrationNumber: formData.registrationNumber,
+    address: {
+      line: formData.address,
+      district: formData.district,
+      state: formData.state,
+      pincode: formData.pinCode
+    },
+    urban: formData.propertyType === 'urban',
+    dateRange: formData.dateRange,
+    includeHistorical: formData.includeHistorical
+  };
 };
 
-// API clients for each portal
-const dorisApi = createApiInstance(API_ENDPOINTS.doris);
-const dlrApi = createApiInstance(API_ENDPOINTS.dlr);
-const cersaiApi = createApiInstance(API_ENDPOINTS.cersai);
-const mca21Api = createApiInstance(API_ENDPOINTS.mca21);
-
-// Export the API instances
-export {
-  dorisApi,
-  dlrApi,
-  cersaiApi,
-  mca21Api
+// API service functions
+export const searchPropertyInDoris = async (formData: SearchFormData) => {
+  try {
+    const response = await apiClient.post('/api/search/doris', formatSearchRequestData(formData));
+    return response.data;
+  } catch (error) {
+    console.error('DORIS API Error:', error);
+    return {
+      source: 'DORIS',
+      status: 'unavailable',
+      message: 'Service temporarily unavailable',
+      data: null
+    };
+  }
 };
 
-// Add interceptors for error handling (example)
-[dorisApi, dlrApi, cersaiApi, mca21Api].forEach(api => {
-  api.interceptors.response.use(
-    response => response,
-    error => {
-      // Log errors to console (in production, you might want to send to a monitoring service)
-      console.error('API Error:', error);
-      
-      // Return a standardized error object
-      return Promise.reject({
-        status: error.response?.status || 500,
-        message: error.response?.data?.message || 'Unknown error occurred',
-        originalError: error
+export const searchPropertyInDlr = async (formData: SearchFormData) => {
+  try {
+    const response = await apiClient.post('/api/search/dlr', formatSearchRequestData(formData));
+    return response.data;
+  } catch (error) {
+    console.error('DLR API Error:', error);
+    return {
+      source: 'DLR',
+      status: 'unavailable',
+      message: 'Service temporarily unavailable',
+      data: null
+    };
+  }
+};
+
+export const searchPropertyInCersai = async (formData: SearchFormData) => {
+  try {
+    const response = await apiClient.post('/api/search/cersai', formatSearchRequestData(formData));
+    return response.data;
+  } catch (error) {
+    console.error('CERSAI API Error:', error);
+    return {
+      source: 'CERSAI',
+      status: 'unavailable',
+      message: 'Service temporarily unavailable',
+      data: null
+    };
+  }
+};
+
+export const searchPropertyInMca = async (formData: SearchFormData) => {
+  try {
+    const response = await apiClient.post('/api/search/mca', formatSearchRequestData(formData));
+    return response.data;
+  } catch (error) {
+    console.error('MCA21 API Error:', error);
+    return {
+      source: 'MCA21',
+      status: 'unavailable',
+      message: 'Service temporarily unavailable',
+      data: null
+    };
+  }
+};
+
+// Function to search property in all portals or specific portal
+export const searchProperty = async (formData: SearchFormData) => {
+  try {
+    // Determine which portals to search
+    let searchPromises = [];
+    
+    if (formData.portal === 'auto' || formData.portal === 'doris') {
+      searchPromises.push({
+        portalId: 'doris',
+        promise: searchPropertyInDoris(formData)
       });
     }
-  );
-});
+    
+    if (formData.portal === 'auto' || formData.portal === 'dlr') {
+      searchPromises.push({
+        portalId: 'dlr',
+        promise: searchPropertyInDlr(formData)
+      });
+    }
+    
+    if (formData.portal === 'auto' || formData.portal === 'cersai') {
+      searchPromises.push({
+        portalId: 'cersai',
+        promise: searchPropertyInCersai(formData)
+      });
+    }
+    
+    if (formData.portal === 'auto' || formData.portal === 'mca21') {
+      searchPromises.push({
+        portalId: 'mca21',
+        promise: searchPropertyInMca(formData)
+      });
+    }
+    
+    // Start all searches in parallel
+    const results = await Promise.all(
+      searchPromises.map(async ({ portalId, promise }) => {
+        const response = await promise;
+        return {
+          portalId,
+          portalName: getPortalName(portalId),
+          status: response.status,
+          data: response.data
+        };
+      })
+    );
+    
+    return results;
+    
+  } catch (error) {
+    console.error('Error searching property:', error);
+    throw error;
+  }
+};
+
+// Helper function to get portal name from ID
+const getPortalName = (portalId: string): string => {
+  const portalNames: Record<string, string> = {
+    'doris': 'DORIS',
+    'dlr': 'DLR',
+    'cersai': 'CERSAI',
+    'mca21': 'MCA21'
+  };
+  
+  return portalNames[portalId] || portalId.toUpperCase();
+};
+
+// Export the API clients
+export default {
+  searchProperty,
+  searchPropertyInDoris,
+  searchPropertyInDlr,
+  searchPropertyInCersai,
+  searchPropertyInMca
+};
