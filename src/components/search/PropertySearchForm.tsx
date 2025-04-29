@@ -114,7 +114,11 @@ const PropertySearchForm: React.FC<PropertySearchFormProps> = ({
       'address'
     ];
     
-    const hasIdentification = identificationFields.some(field => formData[field as keyof SearchFormData]?.trim());
+    // Fixed: Check if string value exists and is not empty
+    const hasIdentification = identificationFields.some(field => {
+      const value = formData[field as keyof SearchFormData];
+      return typeof value === 'string' && value.trim() !== '';
+    });
     
     if (!hasIdentification) {
       toast({
@@ -127,7 +131,9 @@ const PropertySearchForm: React.FC<PropertySearchFormProps> = ({
     
     // Check required fields
     for (const { field, label } of requiredFields) {
-      if (!formData[field as keyof SearchFormData]?.trim()) {
+      // Fixed: Check if string value exists and is not empty
+      const value = formData[field as keyof SearchFormData];
+      if (typeof value !== 'string' || value.trim() === '') {
         toast({
           title: "Required Field Missing",
           description: `${label} is required`,
