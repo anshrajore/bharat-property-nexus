@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,11 +21,13 @@ export interface SearchFormData {
 interface PropertySearchFormProps {
   onSearch: (data: SearchFormData) => void;
   isLoading?: boolean;
+  extractedPropertyId?: string | null;
 }
 
 const PropertySearchForm: React.FC<PropertySearchFormProps> = ({
   onSearch,
   isLoading = false,
+  extractedPropertyId = null,
 }) => {
   const { toast } = useToast();
   const [formData, setFormData] = useState<SearchFormData>({
@@ -38,6 +39,13 @@ const PropertySearchForm: React.FC<PropertySearchFormProps> = ({
     propertyType: 'urban',
     portal: 'auto',
   });
+
+  // Effect to update propertyId when extractedPropertyId changes
+  useEffect(() => {
+    if (extractedPropertyId) {
+      setFormData(prev => ({ ...prev, propertyId: extractedPropertyId }));
+    }
+  }, [extractedPropertyId]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

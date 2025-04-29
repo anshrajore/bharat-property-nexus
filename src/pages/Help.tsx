@@ -1,10 +1,9 @@
-
 import React from 'react';
 import AppHeader from '@/components/layout/AppHeader';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { HelpCircle } from 'lucide-react';
+import { FileText, HelpCircle } from 'lucide-react';
 
 const Help = () => {
   return (
