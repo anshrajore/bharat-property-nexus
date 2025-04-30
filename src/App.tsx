@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 import Index from "./pages/Index";
+import PropertyDetails from "./pages/PropertyDetails";
 import Auth from "./pages/Auth";
 import Help from "./pages/Help";
 import About from "./pages/About";
@@ -46,6 +47,7 @@ const App = () => {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/property/:propertyId" element={<PropertyDetails />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/help" element={<Help />} />
             <Route path="/about" element={<About />} />

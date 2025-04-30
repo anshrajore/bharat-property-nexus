@@ -6,9 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { UnifiedPropertyRecord } from '@/services/dataIntegrationService';
 import { Calendar, FileText, MapPin, FileSearch, Download, Share2 } from 'lucide-react';
-import { format } from 'date-fns';
 import { downloadAsPdf, shareViaWhatsApp } from '@/utils/shareResults';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
+import { Link } from 'react-router-dom';
 
 interface PropertyCardProps {
   property: UnifiedPropertyRecord;
@@ -18,6 +18,7 @@ interface PropertyCardProps {
 const PropertyCard: React.FC<PropertyCardProps> = ({ property, className }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showingDetails, setShowingDetails] = useState(false);
+  const { toast } = useToast();
 
   const handleDownloadPdf = async () => {
     try {
@@ -221,72 +222,16 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, className }) => {
         </Button>
         
         <div className="flex gap-2">
-          <Dialog open={showingDetails} onOpenChange={setShowingDetails}>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="sm" className="flex items-center">
-                <FileSearch className="h-4 w-4 mr-1" />
-                Details
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px]">
-              <DialogHeader>
-                <DialogTitle>Property Details</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 max-h-[70vh] overflow-y-auto p-1">
-                <div>
-                  <h3 className="text-lg font-semibold">{property.ownerName}</h3>
-                  <p className="text-gray-500">{property.propertyLocation}</p>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {Object.entries(property).map(([key, value]) => {
-                    // Skip complex objects or arrays for this simple view
-                    if (key === 'encumbrances' || key === 'coordinates' || key === 'sourceDocuments') return null;
-                    
-                    return (
-                      <div key={key} className="border-b pb-2">
-                        <div className="text-sm text-gray-500 capitalize">
-                          {key.replace(/([A-Z])/g, ' $1').trim()}
-                        </div>
-                        <div className="font-medium">
-                          {typeof value === 'string' ? value : JSON.stringify(value)}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-                
-                <div>
-                  <h4 className="font-semibold mb-2">Encumbrances</h4>
-                  <div className="space-y-2">
-                    {property.encumbrances.map((encumbrance, index) => (
-                      <div key={index} className="border rounded p-3">
-                        <div className="flex justify-between">
-                          <span className="font-medium">{encumbrance.type}</span>
-                          <Badge className={getStatusColor(encumbrance.status)}>
-                            {encumbrance.status}
-                          </Badge>
-                        </div>
-                        <div className="mt-1 text-sm">
-                          <div>Holder: {encumbrance.holder}</div>
-                          {encumbrance.value && <div>Value: {encumbrance.value}</div>}
-                          {encumbrance.date && <div>Date: {encumbrance.date}</div>}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex justify-end gap-2 mt-4">
-                <Button variant="outline" onClick={() => setShowingDetails(false)}>Close</Button>
-                <Button onClick={handleDownloadPdf}>
-                  <Download className="h-4 w-4 mr-1" />
-                  Download PDF
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <Link to={`/property/${property.propertyId}`}>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex items-center"
+            >
+              <FileSearch className="h-4 w-4 mr-1" />
+              Details
+            </Button>
+          </Link>
           
           <Button variant="outline" size="sm" onClick={handleDownloadPdf}>
             <Download className="h-4 w-4" />
