@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -7,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { UnifiedPropertyRecord } from '@/services/dataIntegrationService';
 import { Calendar, FileText, MapPin, FileSearch, Download, Share2 } from 'lucide-react';
 import { format } from 'date-fns';
-import { generatePropertyPdf } from '@/utils/shareResults';
+import { downloadAsPdf, shareViaWhatsApp } from '@/utils/shareResults';
 import { toast } from '@/hooks/use-toast';
 
 interface PropertyCardProps {
@@ -21,9 +20,11 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, className }) => {
 
   const handleDownloadPdf = async () => {
     try {
-      await generatePropertyPdf(property.sourcePortal, {
-        ...property,
-        status: 'found'
+      // Convert property to SearchResult format for downloadAsPdf
+      downloadAsPdf({
+        portalName: property.sourcePortal,
+        status: 'found',
+        data: property
       });
       
       toast({
@@ -65,10 +66,16 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, className }) => {
         }
       }
     } else {
+      // If Web Share API is not available, use our WhatsApp sharing function
+      shareViaWhatsApp({
+        portalName: property.sourcePortal,
+        status: 'found',
+        data: property
+      });
+      
       toast({
-        title: "Sharing Unavailable",
-        description: "Your browser doesn't support the Web Share API",
-        variant: "destructive",
+        title: "WhatsApp Sharing",
+        description: "Opening WhatsApp to share property details",
       });
     }
   };
