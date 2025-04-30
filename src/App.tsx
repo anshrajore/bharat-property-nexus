@@ -12,6 +12,7 @@ import Auth from "./pages/Auth";
 import Help from "./pages/Help";
 import About from "./pages/About";
 import NotFound from "./pages/NotFound";
+import VapiAgent from "./components/voice/VapiAgent";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +53,7 @@ const App = () => {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
+        <VapiAgent />
       </TooltipProvider>
     </QueryClientProvider>
   );

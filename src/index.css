@@ -104,4 +104,143 @@
   .govt-input-focus {
     @apply focus:border-gov-blue focus:ring-2 focus:ring-gov-blue/20 focus:outline-none;
   }
+  
+  /* Animation utilities */
+  .slide-in-bottom {
+    animation: slide-in-bottom 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  }
+  
+  .slide-in-right {
+    animation: slide-in-right 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  }
+  
+  .fade-in {
+    animation: fade-in 0.6s ease-in-out both;
+  }
+  
+  .hover-float {
+    transition: transform 0.3s ease;
+  }
+  
+  .hover-float:hover {
+    transform: translateY(-5px);
+  }
+  
+  .pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  .shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .shimmer::after {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    transform: translateX(-100%);
+    background-image: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0,
+      rgba(255, 255, 255, 0.2) 20%,
+      rgba(255, 255, 255, 0.5) 60%,
+      rgba(255, 255, 255, 0)
+    );
+    animation: shimmer 2s infinite;
+    content: '';
+  }
+}
+
+@keyframes slide-in-bottom {
+  0% {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in-right {
+  0% {
+    transform: translateX(20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Government portal theme colors */
+:root {
+  --gov-blue: #0b3d91;
+  --gov-blue-light: #1756b8;
+  --gov-orange: #ff6f00;
+  --gov-orange-light: #ff9e40;
+  --gov-red: #d32f2f;
+  --gov-green: #388e3c;
+  --gov-yellow: #fbc02d;
+  --gov-purple: #7b1fa2;
+  --gov-teal: #00796b;
+}
+
+.bg-gov-blue {
+  background-color: var(--gov-blue);
+}
+
+.hover\:bg-gov-blue-light:hover {
+  background-color: var(--gov-blue-light);
+}
+
+.text-gov-blue {
+  color: var(--gov-blue);
+}
+
+.bg-gov-orange {
+  background-color: var(--gov-orange);
+}
+
+.hover\:bg-gov-orange-light:hover {
+  background-color: var(--gov-orange-light);
+}
+
+.text-gov-orange {
+  color: var(--gov-orange);
+}
+
+.border-gov-blue {
+  border-color: var(--gov-blue);
+}
+
+.border-gov-orange {
+  border-color: var(--gov-orange);
 }
