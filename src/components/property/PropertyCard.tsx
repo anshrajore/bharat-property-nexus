@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -22,6 +23,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, className }) => {
     try {
       // Convert property to SearchResult format for downloadAsPdf
       downloadAsPdf({
+        portalId: property.sourcePortal.toLowerCase(), // Add portalId property
         portalName: property.sourcePortal,
         status: 'found',
         data: property
@@ -68,6 +70,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, className }) => {
     } else {
       // If Web Share API is not available, use our WhatsApp sharing function
       shareViaWhatsApp({
+        portalId: property.sourcePortal.toLowerCase(), // Add portalId property
         portalName: property.sourcePortal,
         status: 'found',
         data: property
