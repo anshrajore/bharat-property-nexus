@@ -5,12 +5,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Download, FileText } from 'lucide-react';
 import StatusIndicator, { StatusType } from './StatusIndicator';
+import { UnifiedPropertyRecord } from '@/types/property';
 
 export interface PortalResult {
   portalId: string;
   portalName: string;
   status: StatusType;
-  data: Record<string, any> | null;
+  data: UnifiedPropertyRecord | null;
 }
 
 interface SearchResultsProps {
@@ -61,11 +62,26 @@ const SearchResults: React.FC<SearchResultsProps> = ({
     }
     
     if (result.status === 'found' && result.data) {
+      // Display our unified data format
+      const data = result.data;
+      
+      // Filter out null/undefined values and metadata fields
+      const displayData = Object.entries(data).filter(([key, value]) => {
+        return value !== null && value !== undefined && !['dataSource', 'portalOrigin'].includes(key);
+      }).reduce((acc, [key, value]) => {
+        // Convert camelCase to Title Case for display
+        const formattedKey = key.replace(/([A-Z])/g, ' $1')
+          .replace(/^./, str => str.toUpperCase());
+        
+        acc[formattedKey] = value;
+        return acc;
+      }, {} as Record<string, any>);
+
       return (
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {Object.entries(result.data).map(([key, value]) => (
-              <div key={key} className="border rounded-md p-3 bg-gray-50">
+            {Object.entries(displayData).map(([key, value]) => (
+              <div key={key} className="border rounded-md p-3 bg-gray-50 hover:bg-gray-100 transition-colors">
                 <p className="text-xs font-medium text-gray-500 mb-1">{key}</p>
                 <p className="text-sm font-medium">{String(value)}</p>
               </div>

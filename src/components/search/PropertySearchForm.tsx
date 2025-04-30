@@ -5,9 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { User, IdCard, FileText, MapPin, Pin, Radio, Search } from 'lucide-react';
+import { User, IdCard, FileText, MapPin, Pin, Radio, Search, MapPinned } from 'lucide-react';
 import PortalSelector from './PortalSelector';
 import PropertyTypeToggle from './PropertyTypeToggle';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import StateDistrictSelector from './StateDistrictSelector';
 
 export interface SearchFormData {
   ownerName: string;
@@ -17,6 +19,8 @@ export interface SearchFormData {
   pinCode: string;
   propertyType: string;
   portal: string;
+  state: string;
+  district: string;
 }
 
 interface PropertySearchFormProps {
@@ -37,6 +41,8 @@ const PropertySearchForm: React.FC<PropertySearchFormProps> = ({
     pinCode: '',
     propertyType: 'urban',
     portal: 'auto',
+    state: '',
+    district: '',
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -50,6 +56,10 @@ const PropertySearchForm: React.FC<PropertySearchFormProps> = ({
 
   const handlePortalChange = (value: string) => {
     setFormData((prev) => ({ ...prev, portal: value }));
+  };
+
+  const handleStateDistrictChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -132,6 +142,12 @@ const PropertySearchForm: React.FC<PropertySearchFormProps> = ({
                 className="govt-input-focus"
               />
             </div>
+
+            <StateDistrictSelector
+              state={formData.state}
+              district={formData.district}
+              onChange={handleStateDistrictChange}
+            />
 
             <div className="space-y-2">
               <Label htmlFor="registrationNumber" className="flex items-center gap-2">

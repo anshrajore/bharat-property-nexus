@@ -6,6 +6,9 @@ import PropertySearchForm, { SearchFormData } from '@/components/search/Property
 import SearchResults from '@/components/search/SearchResults';
 import AboutSystem from '@/components/about/AboutSystem';
 import { searchProperty } from '@/services/searchService';
+import { Button } from '@/components/ui/button';
+import { MessagesSquare } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const Index = () => {
   const { toast } = useToast();
@@ -99,6 +102,11 @@ const Index = () => {
     }
   };
 
+  // Function to handle VAPI bot click
+  const handleVapiBotClick = () => {
+    window.open('https://vapi.ai?demo=true&shareKey=c42849ce-d6c4-4dd3-ac8c-24482acfd70a&assistantId=9cc6edcc-8468-435b-b332-08b4051b7587', '_blank');
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
       <AppHeader />
@@ -107,16 +115,33 @@ const Index = () => {
         <div className="space-y-12">
           {/* Hero section */}
           <section className="text-center mb-8">
-            <h1 className="text-3xl md:text-4xl font-bold text-gov-blue mb-4">Bharat Property Nexus</h1>
-            <p className="text-lg text-gray-700 max-w-3xl mx-auto">
+            <motion.h1 
+              className="text-3xl md:text-4xl font-bold text-gov-blue mb-4"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              Bharat Property Nexus
+            </motion.h1>
+            <motion.p 
+              className="text-lg text-gray-700 max-w-3xl mx-auto"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
               A unified search interface for all government property databases, designed to simplify property verification across India.
-            </p>
+            </motion.p>
           </section>
           
           {/* Search Form */}
-          <section className="mb-8">
+          <motion.section 
+            className="mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
             <PropertySearchForm onSearch={handleSearch} isLoading={isSearching} />
-          </section>
+          </motion.section>
           
           {/* Search Results */}
           <section ref={resultsRef}>
@@ -134,7 +159,7 @@ const Index = () => {
       </main>
       
       {/* Footer */}
-      <footer className="bg-gov-blue text-white py-6 mt-16">
+      <footer className="bg-gov-blue text-white py-6 mt-16 relative">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
@@ -169,6 +194,28 @@ const Index = () => {
             <p className="mt-1">This is a government portal developed for unified property information retrieval.</p>
           </div>
         </div>
+
+        {/* VAPI Agent Bot Button */}
+        <motion.div 
+          className="fixed bottom-6 right-6"
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ 
+            type: "spring",
+            stiffness: 260,
+            damping: 20,
+            delay: 1
+          }}
+        >
+          <Button 
+            onClick={handleVapiBotClick}
+            className="rounded-full p-4 bg-gov-orange hover:bg-gov-orange-dark shadow-lg flex items-center gap-2"
+            size="lg"
+          >
+            <MessagesSquare className="h-6 w-6" />
+            <span className="hidden sm:inline">Chat with Property Assistant</span>
+          </Button>
+        </motion.div>
       </footer>
     </div>
   );

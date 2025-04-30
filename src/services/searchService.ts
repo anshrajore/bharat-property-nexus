@@ -1,5 +1,7 @@
 
 import { SearchFormData } from '@/components/search/PropertySearchForm';
+import { transformPortalData } from './dataTransformService';
+import { UnifiedPropertyRecord } from '@/types/property';
 
 // Mock API endpoints - in a real app, these would point to actual endpoints
 const API_ENDPOINTS = {
@@ -13,7 +15,7 @@ export interface SearchResult {
   portalId: string;
   portalName: string;
   status: 'loading' | 'found' | 'notFound' | 'unavailable';
-  data: Record<string, any> | null;
+  data: UnifiedPropertyRecord | null;
 }
 
 // Portal metadata
@@ -49,6 +51,9 @@ const mockSearchApi = (
     // Simulate network delay
     const delay = 1500 + Math.random() * 2000; // 1.5 to 3.5 seconds
     
+    // Added parameters for state and district to search
+    const { state, district } = formData;
+    
     setTimeout(() => {
       // For demo purposes: simulate different responses
       const randomOutcome = Math.random();
@@ -62,15 +67,15 @@ const mockSearchApi = (
           'Registration Date': '15/03/2022',
           'Market Value': '₹ 82,45,000',
           'Property Area': formData.propertyType === 'urban' ? '1250 sq.ft' : '2.5 acres',
-          'Registration Office': 'Delhi South',
+          'Registration Office': state ? `${district || 'Central'}, ${state}` : 'Delhi South',
         },
         dlr: {
           'Survey Number': formData.propertyId || 'KH-' + Math.floor(Math.random() * 100) + '/' + Math.floor(Math.random() * 100),
           'Owner': formData.ownerName,
           'Land Type': formData.propertyType === 'urban' ? 'Urban Development Authority' : 'Agricultural',
           'Area': formData.propertyType === 'urban' ? '1250 sq.ft' : '2.5 acres',
-          'Village/Ward': 'Sample Village',
-          'District': 'Sample District',
+          'Village/Ward': district || 'Sample Village',
+          'District': state || 'Sample District',
           'Last Updated': '22/05/2023',
           'Land Use': formData.propertyType === 'urban' ? 'Residential' : 'Farming',
         },
@@ -80,7 +85,7 @@ const mockSearchApi = (
           'Security Type': 'Immovable Property',
           'Creation Date': '08/11/2021',
           'Secured Creditor': 'Sample Bank Ltd.',
-          'Property Description': formData.address,
+          'Property Description': formData.address || `Property in ${district || 'Central Area'}, ${state || 'Delhi'}`,
           'Charge Amount': '₹ 56,00,000',
           'Status': 'Active'
         },
@@ -88,7 +93,7 @@ const mockSearchApi = (
           'Company Name': formData.ownerName + ' Enterprises Ltd.',
           'CIN': 'U' + Math.floor(Math.random() * 10000000) + 'DL2020PTC' + Math.floor(Math.random() * 100000),
           'Company Status': 'Active',
-          'Address': formData.address,
+          'Address': formData.address || `${district || ''} ${state || 'Delhi'}`.trim(),
           'Date of Incorporation': '12/08/2020',
           'Authorized Capital': '₹ 10,00,000',
           'Paid Up Capital': '₹ 5,00,000',
@@ -99,11 +104,19 @@ const mockSearchApi = (
       // Return different statuses based on randomOutcome
       if (randomOutcome < 0.7) {
         // 70% chance of finding records
+        const rawData = exampleData[portalId as keyof typeof exampleData];
+        const transformedData = transformPortalData(portalId, rawData);
+        
+        // Add state and district from the search parameters if they exist
+        if (state) transformedData.state = state;
+        if (district) transformedData.district = district;
+        if (formData.pinCode) transformedData.pinCode = formData.pinCode;
+        
         resolve({
           portalId,
           portalName: PORTALS[portalId as keyof typeof PORTALS].name,
           status: 'found',
-          data: exampleData[portalId as keyof typeof exampleData]
+          data: transformedData
         });
       } else if (randomOutcome < 0.9) {
         // 20% chance of not finding records
