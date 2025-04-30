@@ -1,25 +1,13 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { User, IdCard, FileText, MapPin, Pin, Radio, Search, Clock, Calendar, Flag } from 'lucide-react';
+import { User, IdCard, FileText, MapPin, Pin, Radio, Search } from 'lucide-react';
 import PortalSelector from './PortalSelector';
 import PropertyTypeToggle from './PropertyTypeToggle';
-import LocationSelector from './LocationSelector';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format } from 'date-fns';
-import { Calendar as CalendarUI } from '@/components/ui/calendar';
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 
 export interface SearchFormData {
   ownerName: string;
@@ -29,53 +17,16 @@ export interface SearchFormData {
   pinCode: string;
   propertyType: string;
   portal: string;
-  state: string;
-  district: string;
-  includeHistorical: boolean;
-  dateRange: {
-    from: Date | undefined;
-    to: Date | undefined;
-  };
 }
 
 interface PropertySearchFormProps {
   onSearch: (data: SearchFormData) => void;
   isLoading?: boolean;
-  extractedPropertyId?: string | null;
 }
-
-// Indian states array
-const INDIAN_STATES = [
-  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", 
-  "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", 
-  "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", 
-  "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", 
-  "Uttarakhand", "West Bengal", "Andaman and Nicobar Islands", "Chandigarh", 
-  "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Jammu and Kashmir", 
-  "Ladakh", "Lakshadweep", "Puducherry"
-];
-
-// Districts by state (subset of districts for popular states)
-const DISTRICTS_BY_STATE: Record<string, string[]> = {
-  "Delhi": ["Central Delhi", "East Delhi", "New Delhi", "North Delhi", "North East Delhi", "North West Delhi", "South Delhi", "South West Delhi", "West Delhi"],
-  "Maharashtra": ["Mumbai", "Pune", "Nagpur", "Thane", "Nashik", "Aurangabad", "Solapur", "Amravati", "Kolhapur", "Latur", "Dhule"],
-  "Karnataka": ["Bengaluru Urban", "Belgaum", "Mysuru", "Shivamogga", "Tumakuru", "Dakshina Kannada", "Davanagere", "Udupi", "Dharwad", "Hassan"],
-  "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai", "Salem", "Tiruchirappalli", "Tirunelveli", "Tiruppur", "Vellore", "Erode", "Thoothukkudi"],
-  "Uttar Pradesh": ["Lucknow", "Kanpur", "Ghaziabad", "Agra", "Varanasi", "Meerut", "Prayagraj", "Bareilly", "Aligarh", "Moradabad", "Saharanpur"],
-  "Gujarat": ["Ahmedabad", "Surat", "Vadodara", "Rajkot", "Bhavnagar", "Jamnagar", "Gandhinagar", "Junagadh", "Anand", "Bharuch"],
-  "West Bengal": ["Kolkata", "Howrah", "Asansol", "Durgapur", "Bardhaman", "Siliguri", "Malda", "Kharagpur", "Darjeeling", "Jalpaiguri"],
-  "Rajasthan": ["Jaipur", "Jodhpur", "Kota", "Bikaner", "Ajmer", "Udaipur", "Bhilwara", "Alwar", "Sikar", "Sri Ganganagar"],
-  "Andhra Pradesh": ["Visakhapatnam", "Vijayawada", "Guntur", "Nellore", "Kurnool", "Rajahmundry", "Tirupati", "Kakinada", "Kadapa", "Anantapur"],
-  "Telangana": ["Hyderabad", "Warangal", "Nizamabad", "Karimnagar", "Khammam", "Ramagundam", "Mahbubnagar", "Nalgonda", "Adilabad", "Suryapet"]
-};
-
-// Default districts for states not in our list
-const DEFAULT_DISTRICTS = ["District 1", "District 2", "District 3", "District 4", "District 5"];
 
 const PropertySearchForm: React.FC<PropertySearchFormProps> = ({
   onSearch,
   isLoading = false,
-  extractedPropertyId = null,
 }) => {
   const { toast } = useToast();
   const [formData, setFormData] = useState<SearchFormData>({
@@ -86,36 +37,7 @@ const PropertySearchForm: React.FC<PropertySearchFormProps> = ({
     pinCode: '',
     propertyType: 'urban',
     portal: 'auto',
-    state: '',
-    district: '',
-    includeHistorical: false,
-    dateRange: {
-      from: undefined,
-      to: undefined
-    }
   });
-
-  const [isAdvancedSearch, setIsAdvancedSearch] = useState(false);
-  const [availableDistricts, setAvailableDistricts] = useState<string[]>([]);
-
-  // Effect to update propertyId when extractedPropertyId changes
-  useEffect(() => {
-    if (extractedPropertyId) {
-      setFormData(prev => ({ ...prev, propertyId: extractedPropertyId }));
-    }
-  }, [extractedPropertyId]);
-
-  // Effect to update districts when state changes
-  useEffect(() => {
-    // Update districts when state changes
-    if (formData.state) {
-      setAvailableDistricts(DISTRICTS_BY_STATE[formData.state] || DEFAULT_DISTRICTS);
-      // Reset district selection when state changes
-      setFormData(prev => ({ ...prev, district: '' }));
-    } else {
-      setAvailableDistricts([]);
-    }
-  }, [formData.state]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -128,22 +50,6 @@ const PropertySearchForm: React.FC<PropertySearchFormProps> = ({
 
   const handlePortalChange = (value: string) => {
     setFormData((prev) => ({ ...prev, portal: value }));
-  };
-
-  const handleStateChange = (value: string) => {
-    setFormData((prev) => ({ ...prev, state: value }));
-  };
-
-  const handleDistrictChange = (value: string) => {
-    setFormData((prev) => ({ ...prev, district: value }));
-  };
-
-  const handleCheckboxChange = (checked: boolean) => {
-    setFormData((prev) => ({ ...prev, includeHistorical: checked }));
-  };
-
-  const handleDateRangeChange = (range: { from: Date | undefined, to: Date | undefined }) => {
-    setFormData((prev) => ({ ...prev, dateRange: range }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -162,11 +68,7 @@ const PropertySearchForm: React.FC<PropertySearchFormProps> = ({
       'address'
     ];
     
-    // Fixed: Check if string value exists and is not empty
-    const hasIdentification = identificationFields.some(field => {
-      const value = formData[field as keyof SearchFormData];
-      return typeof value === 'string' && value.trim() !== '';
-    });
+    const hasIdentification = identificationFields.some(field => formData[field as keyof SearchFormData]?.trim());
     
     if (!hasIdentification) {
       toast({
@@ -179,9 +81,7 @@ const PropertySearchForm: React.FC<PropertySearchFormProps> = ({
     
     // Check required fields
     for (const { field, label } of requiredFields) {
-      // Fixed: Check if string value exists and is not empty
-      const value = formData[field as keyof SearchFormData];
-      if (typeof value !== 'string' || value.trim() === '') {
+      if (!formData[field as keyof SearchFormData]?.trim()) {
         toast({
           title: "Required Field Missing",
           description: `${label} is required`,
@@ -192,10 +92,6 @@ const PropertySearchForm: React.FC<PropertySearchFormProps> = ({
     }
     
     onSearch(formData);
-  };
-
-  const displayFormattedDate = (date: Date | undefined) => {
-    return date ? format(date, 'PP') : '';
   };
 
   return (
@@ -266,46 +162,6 @@ const PropertySearchForm: React.FC<PropertySearchFormProps> = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="state" className="flex items-center gap-2">
-                <Flag className="h-4 w-4" /> State/Union Territory
-              </Label>
-              <Select value={formData.state} onValueChange={handleStateChange}>
-                <SelectTrigger id="state" className="w-full govt-input-focus">
-                  <SelectValue placeholder="Select state" />
-                </SelectTrigger>
-                <SelectContent position="popper" className="max-h-[300px]">
-                  {INDIAN_STATES.map((state) => (
-                    <SelectItem key={state} value={state}>
-                      {state}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="district" className="flex items-center gap-2">
-                <MapPin className="h-4 w-4" /> District
-              </Label>
-              <Select 
-                value={formData.district} 
-                onValueChange={handleDistrictChange}
-                disabled={!formData.state}
-              >
-                <SelectTrigger id="district" className="w-full govt-input-focus">
-                  <SelectValue placeholder={formData.state ? "Select district" : "Select state first"} />
-                </SelectTrigger>
-                <SelectContent position="popper" className="max-h-[300px]">
-                  {availableDistricts.map((district) => (
-                    <SelectItem key={district} value={district}>
-                      {district}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
               <Label htmlFor="pinCode" className="flex items-center gap-2">
                 <Pin className="h-4 w-4" /> PIN Code*
               </Label>
@@ -333,84 +189,6 @@ const PropertySearchForm: React.FC<PropertySearchFormProps> = ({
                 onChange={handlePortalChange} 
               />
             </div>
-          </div>
-
-          <div className="border-t border-gray-200 pt-4">
-            <Button
-              type="button"
-              variant="link"
-              className="text-gov-blue p-0 h-auto font-medium flex items-center"
-              onClick={() => setIsAdvancedSearch(!isAdvancedSearch)}
-            >
-              {isAdvancedSearch ? 'Hide' : 'Show'} Advanced Options
-            </Button>
-            
-            {isAdvancedSearch && (
-              <div className="mt-4 space-y-6 border-l-2 border-gov-blue pl-4">
-                <div className="flex flex-col space-y-4">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="includeHistorical"
-                      checked={formData.includeHistorical}
-                      onCheckedChange={handleCheckboxChange}
-                    />
-                    <label
-                      htmlFor="includeHistorical"
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center"
-                    >
-                      <Clock className="h-4 w-4 mr-1" />
-                      Include historical records (may take longer)
-                    </label>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4" /> Registration Date Range
-                    </Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="w-full justify-start text-left font-normal"
-                        >
-                          <Calendar className="mr-2 h-4 w-4" />
-                          {formData.dateRange.from ? (
-                            formData.dateRange.to ? (
-                              <>
-                                {displayFormattedDate(formData.dateRange.from)} - {displayFormattedDate(formData.dateRange.to)}
-                              </>
-                            ) : (
-                              displayFormattedDate(formData.dateRange.from)
-                            )
-                          ) : (
-                            <span>Pick a date range</span>
-                          )}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <CalendarUI
-                          initialFocus
-                          mode="range"
-                          defaultMonth={formData.dateRange.from}
-                          selected={{
-                            from: formData.dateRange.from,
-                            to: formData.dateRange.to
-                          }}
-                          onSelect={(range) => {
-                            handleDateRangeChange({
-                              from: range?.from,
-                              to: range?.to
-                            });
-                          }}
-                          numberOfMonths={2}
-                          className="p-3 pointer-events-auto"
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
 
           <div className="pt-4">
